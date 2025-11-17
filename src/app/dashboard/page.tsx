@@ -5,10 +5,21 @@ import { useEffect, useState } from "react";
 type UserData = {
   name: string;
   goal: string;
+  age?: number;
+  weight?: number;
+  height?: number;
+  sex?: string;
+  activityLevel?: string;
+  dietRestrictions?: string;
+  wakeTime?: string;
+  sleepTime?: string;
 };
 
 export default function Dashboard() {
   const [user, setUser] = useState<UserData | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -17,7 +28,7 @@ export default function Dashboard() {
         try {
           setUser(JSON.parse(raw));
         } catch {
-          // se der erro, ignora
+          // ignore erro de parse
         }
       }
     }
@@ -32,6 +43,36 @@ export default function Dashboard() {
   const nome = user?.name || "Você";
   const objetivo = user?.goal || "manter uma rotina saudável";
 
+  async function handleGeneratePlan() {
+    if (!user) {
+      alert("Preencha o onboarding primeiro 🙂");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch("/api/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Erro ao gerar plano");
+      }
+
+      const data = await res.json();
+      setPlan(data.plan as string);
+    } catch (e) {
+      console.error(e);
+      setError("Não foi possível gerar o plano agora. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-500 via-orange-400 to-orange-600 px-6 py-10">
       <div className="max-w-5xl mx-auto bg-black/75 rounded-3xl p-8 md:p-10 shadow-2xl border border-white/10 text-white">
@@ -44,51 +85,33 @@ export default function Dashboard() {
               {hoje} • Foco em: {objetivo}.
             </p>
           </div>
-          <button className="px-6 py-2 rounded-full bg-green-500 hover:bg-green-600 text-black font-semibold text-sm md:text-base transition-transform hover:scale-105">
-            Gerar novo plano
+          <button
+            onClick={handleGeneratePlan}
+            disabled={loading}
+            className="px-6 py-2 rounded-full bg.green-500 hover:bg-green-600 disabled:opacity-60 disabled:cursor-not-allowed text-black font-semibold text-sm md:text-base transition-transform hover:scale-105"
+          >
+            {loading ? "Gerando plano..." : "Gerar novo plano"}
           </button>
         </header>
 
-        <section className="grid md:grid-cols-3 gap-5 mb-8">
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-            <h2 className="text-sm font-semibold mb-2 text-white/80">
-              Metas do dia
-            </h2>
-            <ul className="text-sm text-white/80 space-y-1">
-              <li>💧 2,3 L de água</li>
-              <li>🚶‍♀️ 7.000 passos</li>
-              <li>🛏️ 7h de sono</li>
-              <li>🔥 1.800 kcal totais</li>
-            </ul>
+        {error && (
+          <div className="mb-4 text-sm text-red-300 bg-red-900/40 border border-red-500/40 rounded-xl px-4 py-3">
+            {error}
           </div>
+        )}
 
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-            <h2 className="text-sm font-semibold mb-2 text-white/80">
-              Treino sugerido
-            </h2>
-            <p className="text-sm text-white/80 mb-2">Duração: 25 minutos</p>
-            <ul className="text-sm text-white/80 space-y-1">
-              <li>• Aquecimento leve (5 min)</li>
-              <li>• Agachamento, flexão, remada (3x12)</li>
-              <li>• Prancha e abdominal (3x30s)</li>
-              <li>• Alongamento final (5 min)</li>
-            </ul>
-          </div>
+        {plan ? (
+          <section className="bg-white/5 rounded-2xl p-5 border border-white/10 text-sm text-white/80 whitespace-pre-wrap">
+            {plan}
+          </section>
+        ) : (
+          <section className="bg-white/5 rounded-2xl p-5 border border-white/10 text-sm text-white/80">
+            Clique em <strong>“Gerar novo plano”</strong> para criar seu plano
+            diário personalizado com base nos seus dados.
+          </section>
+        )}
 
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-            <h2 className="text-sm font-semibold mb-2 text-white/80">
-              Alimentação do dia
-            </h2>
-            <ul className="text-sm text-white/80 space-y-1">
-              <li>🍳 Café: ovos + frutas</li>
-              <li>🍚 Almoço: proteína + carbo bom + salada</li>
-              <li>🥜 Lanche: iogurte ou castanhas</li>
-              <li>🥗 Jantar: refeição leve com proteína</li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="bg-white/5 rounded-2xl p-5 border border-white/10 text-xs text-white/60">
+        <section className="bg-white/5 rounded-2xl p-5 border border.white/10 text-xs text-white/60 mt-6">
           As orientações aqui apresentadas possuem caráter informativo e
           educativo e não substituem avaliação individualizada por médicos,
           nutricionistas ou educadores físicos. Sempre consulte profissionais
