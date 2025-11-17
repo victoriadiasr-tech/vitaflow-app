@@ -1,10 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Onboarding() {
   const [name, setName] = useState("");
   const [goal, setGoal] = useState("emagrecer");
+  const router = useRouter();
+
+  function handleContinue() {
+    if (!name.trim()) {
+      alert("Coloque pelo menos seu primeiro nome 🙂");
+      return;
+    }
+
+    const data = { name, goal };
+    if (typeof window !== "undefined") {
+      localStorage.setItem("vitaflow-user", JSON.stringify(data));
+    }
+
+    router.push("/dashboard");
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-500 via-orange-400 to-orange-600 px-6 py-10">
@@ -44,6 +60,7 @@ export default function Onboarding() {
           </div>
 
           <button
+            onClick={handleContinue}
             className="w-full mt-4 px-8 py-3 rounded-full bg-green-500 hover:bg-green-600 text-black font-semibold text-lg transition-transform hover:scale-105"
           >
             Continuar
