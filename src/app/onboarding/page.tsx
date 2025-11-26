@@ -1,9 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+// ✅ ADIÇÃO: importa o store do onboarding
+import { useOnboardingStore } from "@/store/onboardingStore";
 
 const TOTAL_STEPS = 3;
+
+// Frases motivacionais
+const MOTIVATIONAL_QUOTES = [
+  {
+    text: "A maior de todas as vitórias é vencer a si mesmo.",
+    author: "Platão",
+  },
+  {
+    text: "Você nunca será capaz de escapar de seu coração. Por isso, é melhor escutar o que ele diz.",
+    author: "Paulo Coelho",
+  },
+  {
+    text: "A disciplina é a ponte entre objetivos e conquistas.",
+    author: "Jim Rohn",
+  },
+  {
+    text: "Coragem é ir em frente mesmo com medo.",
+    author: "Sêneca",
+  },
+  {
+    text: "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
+    author: "Robert Collier",
+  },
+];
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -29,7 +55,20 @@ export default function Onboarding() {
     arm: "", // braço (cm)
   });
 
+  // frase motivacional sorteada no cliente
+  const [quote, setQuote] = useState<{ text: string; author: string } | null>(
+    null
+  );
+
+  useEffect(() => {
+    const idx = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+    setQuote(MOTIVATIONAL_QUOTES[idx]);
+  }, []);
+
   const router = useRouter();
+
+  // ✅ ADIÇÃO: pega o setUser do store
+  const { setUser } = useOnboardingStore();
 
   function handleInput(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -60,10 +99,15 @@ export default function Onboarding() {
       arm: form.arm ? Number(form.arm) : undefined,
     };
 
+    // ✅ NOVO: salva no Zustand store (é isso que o planStore lê)
+    setUser(user);
+
+    // (opcional) mantém o localStorage se você quiser
     if (typeof window !== "undefined") {
       localStorage.setItem("vitaflow-user", JSON.stringify(user));
     }
 
+    // só depois de salvar, vai para o dashboard
     router.push("/dashboard");
   }
 
@@ -299,7 +343,8 @@ export default function Onboarding() {
                   Seu objetivo principal
                 </label>
                 <p className="text-xs text-white/70 mb-3">
-                  Isso orienta a IA a montar a lógica do seu treino, calorias e foco do plano.
+                  Isso orienta a IA a montar a lógica do seu treino, calorias e
+                  foco do plano.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {goals.map((g) => {
@@ -315,6 +360,7 @@ export default function Onboarding() {
                               ? "border-emerald-400 bg-emerald-400/15 shadow-lg shadow-emerald-500/20 scale-[1.02]"
                               : "border-white/20 bg-white/5 hover:bg-white/15 hover:border-emerald-300/70 hover:scale-[1.01]"
                           }`}
+
                       >
                         <div className="text-xl">{g.icon}</div>
                         <div className="flex-1">
@@ -553,11 +599,30 @@ export default function Onboarding() {
           </button>
         </div>
 
-        <p className="text-[11px] text-white/60 mt-6">
-          As recomendações geradas têm caráter informativo e não substituem
-          avaliação individualizada por médicos, nutricionistas ou educadores
-          físicos.
-        </p>
+        {/* FRASE + AVISO */}
+        <div className="mt-8 space-y-3">
+          {quote && (
+            <p
+              className="text-sm text-white/90 text-center italic"
+              style={{
+                fontFamily:
+                  '"Dancing Script","Pacifico","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif',
+                letterSpacing: "0.03em",
+              }}
+            >
+              {quote.text}
+              <span className="ml-2 text-xs not-italic opacity-80">
+                — {quote.author}
+              </span>
+            </p>
+          )}
+
+          <p className="text-[11px] text-white/60">
+            As recomendações geradas têm caráter informativo e não substituem
+            avaliação individualizada por médicos, nutricionistas ou educadores
+            físicos.
+          </p>
+        </div>
       </div>
     </main>
   );

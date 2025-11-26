@@ -1,10 +1,18 @@
+/* ================================ */
+/*   TAILWIND IMPORT (OBRIGATÓRIO)  */
+/* ================================ */
 @import "tailwindcss";
+
+/* ================================ */
+/*  TEMA PADRÃO DO NEXT (preservado)*/
+/* ================================ */
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
+/* Mantém compatibilidade com o @theme inline */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,6 +20,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Preferência do sistema (fallback somente) */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +28,69 @@
   }
 }
 
+/* ================================ */
+/*   VITAFLOW PREMIUM THEME SYSTEM  */
+/* ================================ */
+
+:root {
+  /* cores do layout */
+  --bg: #050816;
+  --bg-card: #0b1020;
+  --bg-soft: #050816;
+
+  /* bordas */
+  --border-subtle: rgba(148, 163, 184, 0.25);
+
+  /* textos */
+  --text: #e5e7eb;
+  --text-soft: #9ca3af;
+
+  /* acento energético */
+  --accent: #22c55e;
+  --accent-soft: rgba(34, 197, 94, 0.12);
+}
+
+/* Tema claro manual */
+.light-theme {
+  --bg: #f9fafb;
+  --bg-card: #ffffff;
+  --bg-soft: #e5e7eb;
+
+  --border-subtle: rgba(148, 163, 184, 0.35);
+
+  --text: #111827;
+  --text-soft: #6b7280;
+
+  --accent: #16a34a;
+  --accent-soft: rgba(22, 163, 74, 0.12);
+}
+
+/* Tema escuro manual */
+.dark-theme {
+  --bg: #050816;
+  --bg-card: #0b1020;
+  --bg-soft: #020617;
+
+  --border-subtle: rgba(148, 163, 184, 0.25);
+
+  --text: #e5e7eb;
+  --text-soft: #9ca3af;
+
+  --accent: #22c55e;
+  --accent-soft: rgba(34, 197, 94, 0.12);
+}
+
+/* ================================ */
+/*         ESTILOS GLOBAIS          */
+/* ================================ */
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
