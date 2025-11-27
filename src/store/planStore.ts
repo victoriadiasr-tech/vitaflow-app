@@ -14,6 +14,8 @@ export type DashboardTab =
 
 interface PlanState {
   plan: PlanResponse | null;
+  // array de dias que o PlanTabs usa
+  days: PlanResponse["days"] | [];
   isLoading: boolean;
   error: string | null;
   currentDayIndex: number;
@@ -26,49 +28,44 @@ interface PlanState {
 
 export const usePlanStore = create<PlanState>((set, get) => ({
   plan: null,
+  days: [],
   isLoading: false,
   error: null,
   currentDayIndex: 0,
   activeTab: "today",
 
-  // 🔥 Agora usa os dados reais do onboarding
   async fetchPlan() {
     try {
       set({ isLoading: true, error: null });
 
-      // pega o usuário salvo no onboardingStore
+      // pega o usuário do onboarding
       const user = useOnboardingStore.getState().user;
-
       if (!user || Object.keys(user).length === 0) {
         throw new Error("Nenhum usuário preenchido no onboarding");
       }
 
-      // log pra conferir no devtools se está vindo certo
-      console.log("USER ENVIADO PARA /api/plan:", user);
-
       const res = await fetch("/api/plan", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user }),
       });
 
       if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        console.error(
-          "Erro ao chamar /api/plan:",
-          res.status,
-          res.statusText,
-          text,
-        );
-        throw new Error("Falha ao buscar o plano");
+        console.error("Erro ao chamar /api/plan:", res.status, res.statusText);
+        throw new Error("Falha ao buscar plano");
       }
 
       const data = (await res.json()) as PlanResponse;
 
+      // garante que days existe, independente se veio em data.days ou data.plan.days
+      const days =
+        (data as any).days ??
+        (data as any).plan?.days ??
+        [];
+
       set({
         plan: data,
+        days,
         isLoading: false,
         currentDayIndex: 0,
         error: null,
@@ -78,6 +75,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
       set({
         isLoading: false,
         error: err?.message ?? "Erro inesperado ao buscar o plano",
+        days: [],
       });
     }
   },
