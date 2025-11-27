@@ -1,3 +1,4 @@
+// src/store/planStore.ts
 "use client";
 
 import { create } from "zustand";
@@ -13,9 +14,11 @@ export type DashboardTab =
 
 interface PlanState {
   plan: PlanResponse | null;
-  // acessos diretos para facilitar o front
+
+  // atalhos que os tabs usam
   days: any[] | null;
   weeklyMacros: any | null;
+  weeklyShopping: any | null;
 
   isLoading: boolean;
   error: string | null;
@@ -32,6 +35,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
   plan: null,
   days: null,
   weeklyMacros: null,
+  weeklyShopping: null,
   isLoading: false,
   error: null,
   currentDayIndex: 0,
@@ -41,7 +45,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // pega usuário do onboarding (store nova)
+      // usuário preenchido no onboarding
       const user = useOnboardingStore.getState().user;
       if (!user || Object.keys(user).length === 0) {
         throw new Error("Nenhum usuário preenchido no onboarding");
@@ -59,8 +63,6 @@ export const usePlanStore = create<PlanState>((set, get) => ({
       }
 
       const data = (await res.json()) as PlanResponse;
-
-      // Tenta extrair days e weeklyMacros de forma resiliente
       const anyData = data as any;
 
       const days =
@@ -73,10 +75,16 @@ export const usePlanStore = create<PlanState>((set, get) => ({
         anyData.plan?.weeklyMacros ??
         null;
 
+      const weeklyShopping =
+        anyData.weeklyShopping ??
+        anyData.plan?.weeklyShopping ??
+        null;
+
       set({
         plan: data,
         days,
         weeklyMacros,
+        weeklyShopping,
         isLoading: false,
         currentDayIndex: 0,
         error: null,
@@ -86,6 +94,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
       set({
         isLoading: false,
         error: err?.message ?? "Erro inesperado ao buscar o plano",
+        // mantém últimos days/weekly* se já existirem
       });
     }
   },

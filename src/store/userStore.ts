@@ -3,38 +3,39 @@
 
 import { create } from "zustand";
 
-export type UserData = {
-  name: string;
-  gender: string;
-  age: number;
-  weight: number;
-  height: number;
-  activityLevel: string;
-  objective: string;
+type User = {
+  name?: string;
+  sex?: string;
+  age?: number;
+  weight?: number;
+  height?: number;
+  activityLevel?: string;
+  goal?: string;
+  dietRestrictions?: string;
+  trainingMode?: string;
+  wakeTime?: string;
+  sleepTime?: string;
   bodyFat?: number;
   waist?: number;
   hip?: number;
-  chest?: number;
+  shoulder?: number;
   arm?: number;
-  trainingLocation: string;
-  foodRestrictions?: string;
-  wakeTime?: string;
-  sleepTime?: string;
 };
 
-interface UserState {
-  user: UserData | null;
-  setUser: (data: Partial<UserData>) => void;
-  resetUser: () => void;
-}
+type UserState = {
+  user: Partial<User>;
+  setUser: (data: Partial<User>) => void;
+  clearUser: () => void;
+};
 
 export const useUserStore = create<UserState>((set) => ({
-  user: null,
+  user: {},
 
   setUser: (data) =>
     set((state) => ({
       user: { ...state.user, ...data },
     })),
 
-  resetUser: () => set({ user: null }),
+  clearUser: () => set({ user: {} }),
 }));
+

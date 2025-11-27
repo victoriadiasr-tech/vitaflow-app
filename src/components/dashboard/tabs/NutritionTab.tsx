@@ -1,7 +1,7 @@
 "use client";
 
 import { usePlanStore } from "@/store/planStore";
-import Card from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Utensils, Flame } from "lucide-react";
 
 export default function NutritionTab() {
