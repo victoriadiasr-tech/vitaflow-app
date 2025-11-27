@@ -49,11 +49,19 @@ export default function MacrosTab() {
   );
 }
 
-function MacroBox({ label, value }) {
+type MacroBoxProps = {
+  label: string;
+  value: number | string | null | undefined;
+};
+
+function MacroBox({ label, value }: MacroBoxProps) {
   return (
     <div className="p-4 bg-white/5 rounded-lg border border-white/10">
       <p className="text-sm opacity-70">{label}</p>
-      <p className="text-lg font-semibold">{value}</p>
+      <p className="text-xl font-semibold">
+        {value ?? "--"}
+      </p>
     </div>
   );
 }
+

@@ -1,4 +1,3 @@
-// src/store/planStore.ts
 "use client";
 
 import { create } from "zustand";
@@ -14,12 +13,15 @@ export type DashboardTab =
 
 interface PlanState {
   plan: PlanResponse | null;
-  // array de dias que o PlanTabs usa
-  days: PlanResponse["days"] | [];
+  // acessos diretos para facilitar o front
+  days: any[] | null;
+  weeklyMacros: any | null;
+
   isLoading: boolean;
   error: string | null;
   currentDayIndex: number;
   activeTab: DashboardTab;
+
   fetchPlan: () => Promise<void>;
   regeneratePlan: () => Promise<void>;
   setCurrentDayIndex: (index: number) => void;
@@ -28,7 +30,8 @@ interface PlanState {
 
 export const usePlanStore = create<PlanState>((set, get) => ({
   plan: null,
-  days: [],
+  days: null,
+  weeklyMacros: null,
   isLoading: false,
   error: null,
   currentDayIndex: 0,
@@ -38,7 +41,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // pega o usuário do onboarding
+      // pega usuário do onboarding (store nova)
       const user = useOnboardingStore.getState().user;
       if (!user || Object.keys(user).length === 0) {
         throw new Error("Nenhum usuário preenchido no onboarding");
@@ -57,15 +60,23 @@ export const usePlanStore = create<PlanState>((set, get) => ({
 
       const data = (await res.json()) as PlanResponse;
 
-      // garante que days existe, independente se veio em data.days ou data.plan.days
+      // Tenta extrair days e weeklyMacros de forma resiliente
+      const anyData = data as any;
+
       const days =
-        (data as any).days ??
-        (data as any).plan?.days ??
-        [];
+        anyData.days ??
+        anyData.plan?.days ??
+        null;
+
+      const weeklyMacros =
+        anyData.weeklyMacros ??
+        anyData.plan?.weeklyMacros ??
+        null;
 
       set({
         plan: data,
         days,
+        weeklyMacros,
         isLoading: false,
         currentDayIndex: 0,
         error: null,
@@ -75,7 +86,6 @@ export const usePlanStore = create<PlanState>((set, get) => ({
       set({
         isLoading: false,
         error: err?.message ?? "Erro inesperado ao buscar o plano",
-        days: [],
       });
     }
   },
